@@ -3,74 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - UNI-DASH</title>
+    <title>Login - UNI-DASH System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
 </head>
-<body class="bg-[#0f172a] h-screen flex items-center justify-center">
+<body class="flex items-center justify-center h-screen">
+    <div class="glass-card p-10 rounded-3xl shadow-2xl w-full max-w-md text-center">
+        <div class="text-indigo-500 text-5xl mb-6"><i class="fas fa-shield-halved"></i></div>
+        <h1 class="text-2xl font-black text-white tracking-tighter mb-2">UNI-DASH AUTH</h1>
+        <p class="text-slate-400 text-sm mb-8">Silahkan login dengan Google untuk akses Dashboard IoT</p>
+        
+        <button id="btn-login" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 px-6 rounded-xl transition flex items-center justify-center gap-3">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="20">
+            Sign in with Google
+        </button>
 
-    <div class="bg-slate-900 border border-slate-800 p-10 rounded-3xl shadow-2xl w-full max-w-md text-center">
-        <div class="mb-8">
-            <h1 class="text-3xl font-black text-indigo-500 italic tracking-tighter">UNI-DASH</h1>
-            <p class="text-slate-500 text-xs mt-2 uppercase tracking-widest font-bold">IoT Universal Dashboard</p>
-        </div>
-
-        <div id="loading-state" class="hidden py-4">
-            <div class="animate-spin text-indigo-500 mb-2"><i class="fas fa-circle-notch fa-2x"></i></div>
-            <p class="text-sm text-slate-400">Memverifikasi Sesi...</p>
-        </div>
-
-        <div id="login-controls">
-            <button id="btn-login" class="w-full bg-white text-slate-900 font-black py-4 rounded-2xl flex items-center justify-center space-x-3 hover:bg-slate-200 transition-all active:scale-95">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-6" alt="Google">
-                <span>MASUK DENGAN GOOGLE</span>
-            </button>
-        </div>
+        <div id="status" class="mt-4 text-xs text-red-500 font-medium"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Pakai Config yang baru lo kasih
         const firebaseConfig = {
             apiKey: "AIzaSyC7Kowl_t-GyiJCNZI5xVclGgIEvp6i5zo",
             authDomain: "loginsistemdashboard.firebaseapp.com",
+            databaseURL: "https://loginsistemdashboard-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "loginsistemdashboard",
             storageBucket: "loginsistemdashboard.firebasestorage.app",
             messagingSenderId: "600029832092",
-            appId: "1:600029832092:web:f8bdd90b63dc509c2f5e59"
+            appId: "1:600029832092:web:f8bdd90b63dc509c2f5e59",
+            measurementId: "G-6DG4JR96HK"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        const btnLogin = document.getElementById('btn-login');
-        const loading = document.getElementById('loading-state');
-        const controls = document.getElementById('login-controls');
-
-        // Satpam: Kalau udah login, langsung lempar ke dashboard
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.location.href = "sistemdashboard-v2.html";
-            }
+        document.getElementById('btn-login').addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    // Redirect ke dashboard lu setelah login berhasil
+                    window.location.href = "https://danendra24.github.io/dashboardiot-v2/";
+                }).catch((error) => {
+                    document.getElementById('status').innerText = "Login Gagal: " + error.message;
+                });
         });
-
-        btnLogin.onclick = async () => {
-            controls.classList.add('hidden');
-            loading.classList.remove('hidden');
-
-            try {
-                await signInWithPopup(auth, provider);
-                // Redirect bakal ditangani sama onAuthStateChanged
-            } catch (error) {
-                console.error("Login Error:", error);
-                alert("Gagal Login: " + error.message);
-                controls.classList.remove('hidden');
-                loading.classList.add('hidden');
-            }
-        };
     </script>
 </body>
 </html>
