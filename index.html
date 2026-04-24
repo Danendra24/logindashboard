@@ -3,74 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - UNI-DASH System</title>
+    <title>Login System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #0f172a; font-family: 'Inter', sans-serif; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .loader { border-top-color: #6366f1; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { background-color: #0f172a; color: white; font-family: sans-serif; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex items-center justify-center h-screen p-6">
-    <div class="glass-card p-10 rounded-3xl shadow-2xl w-full max-w-md text-center">
-        <div class="text-indigo-500 text-6xl mb-6"><i class="fas fa-bolt-lightning"></i></div>
-        <h1 class="text-3xl font-black text-white tracking-tighter mb-2">UNI-DASH AUTH</h1>
-        <p class="text-slate-400 text-sm mb-8 font-medium">Sistem Monitoring & Kontrol Terpusat</p>
-        
-        <div id="loading-state" class="hidden flex-col items-center mb-6">
-            <div class="loader w-8 h-8 border-4 border-slate-700 rounded-full mb-3"></div>
-            <p class="text-xs text-indigo-400 font-bold animate-pulse">MEMVERIFIKASI AKSES...</p>
-        </div>
-
-        <button id="btn-login" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-4 px-6 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg active:scale-95">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22">
-            Masuk dengan Google
+<body class="flex items-center justify-center h-screen">
+    <div class="text-center p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl">
+        <h1 class="text-2xl font-bold mb-6">UNI-DASH LOGIN</h1>
+        <div id="loader" class="loader mx-auto mb-4"></div>
+        <button id="btn-login" class="bg-white text-black px-8 py-3 rounded-xl font-bold hover:bg-slate-200 transition">
+            Sign in with Google
         </button>
-
-        <p id="error-msg" class="mt-6 text-[10px] text-red-400 font-bold uppercase tracking-widest hidden"></p>
+        <p id="msg" class="mt-4 text-xs text-slate-500 uppercase tracking-widest"></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC7Kowl_t-GyiJCNZI5xVclGgIEvp6i5zo",
             authDomain: "loginsistemdashboard.firebaseapp.com",
-            databaseURL: "https://loginsistemdashboard-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "loginsistemdashboard",
-            storageBucket: "loginsistemdashboard.firebasestorage.app",
-            messagingSenderId: "600029832092",
-            appId: "1:600029832092:web:f8bdd90b63dc509c2f5e59",
-            measurementId: "G-6DG4JR96HK"
+            projectId: "loginsistemdashboard"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Cek apakah baru balik dari redirect Google
-        window.addEventListener('load', async () => {
+        // 1. CEK HASIL REDIRECT PAS HALAMAN DIBUKA
+        window.onload = async () => {
+            const msg = document.getElementById('msg');
             try {
                 const result = await getRedirectResult(auth);
                 if (result?.user) {
-                    window.location.href = "https://danendra24.github.io/dashboardiot-v2/";
+                    msg.innerText = "LOGIN SUKSES, REDIRECTING...";
+                    window.location.replace("https://danendra24.github.io/dashboardiot-v2/");
                 }
             } catch (error) {
                 console.error(error);
-                document.getElementById('error-msg').innerText = "ERROR: " + error.code;
-                document.getElementById('error-msg').classList.remove('hidden');
+                msg.innerText = "ERROR: " + error.message;
             }
-        });
+        };
 
-        document.getElementById('btn-login').addEventListener('click', () => {
-            document.getElementById('loading-state').classList.remove('hidden');
-            document.getElementById('btn-login').classList.add('hidden');
-            signInWithRedirect(auth, provider);
-        });
+        // 2. TOMBOL LOGIN DENGAN PERSISTENCE
+        document.getElementById('btn-login').onclick = async () => {
+            document.getElementById('loader').style.display = "block";
+            document.getElementById('btn-login').style.display = "none";
+            try {
+                await setPersistence(auth, browserLocalPersistence);
+                await signInWithRedirect(auth, provider);
+            } catch (error) {
+                alert(error.message);
+                location.reload();
+            }
+        };
     </script>
 </body>
 </html>
